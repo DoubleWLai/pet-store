@@ -14,6 +14,7 @@ import org.http4s.implicits._
 import org.http4s.server._
 
 import java.time.Year
+import scala.util.Try
 
 
 object Http4sTutorial {
@@ -41,6 +42,24 @@ object Http4sTutorial {
       case GET -> Root / "movies" :? DirectorQueryParamMatcher(director) +& YearQueryParamMatcher(year) => ???
 
       case GET -> Root / "movies" / UUIDVar(movieId) / "actors" => ???
+    }
+  }
+
+  object DirectorPath {
+    def unapply(name: String): Option[Director] = {
+      Try {
+        val tokens = name.split(" ")
+        Director(tokens(0), tokens(1))
+      }.toOption
+    }
+  }
+
+  def directorRoutes[F[_]: Monad]: HttpRoutes[F] = {
+    val dsl = Http4sDsl[F]
+    import dsl._
+
+    HttpRoutes.of[F] {
+      case GET -> Root / "directors" / DirectorPath(director) => ???
     }
   }
 
