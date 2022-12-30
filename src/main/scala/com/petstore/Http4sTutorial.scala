@@ -14,6 +14,7 @@ import org.http4s.implicits._
 import org.http4s.server._
 
 import java.time.Year
+import scala.collection.mutable
 import scala.util.Try
 
 
@@ -25,6 +26,7 @@ object Http4sTutorial {
   case class Director(firstName: String, lastName: String) {
     override def toString = s"$firstName $lastName"
   }
+  case class DirectorDetails(firstName: String, lastName: String, genre: String)
 
   // GET /movies?director=Zack%20Snyder&year=2021
 
@@ -54,6 +56,9 @@ object Http4sTutorial {
     }
   }
 
+  val directorDetailsDB: mutable.Map[Director, DirectorDetails] =
+    mutable.Map(Director("Zack", "Snyder") -> DirectorDetails("Zack", "Snyder", "superhero"))
+
   def directorRoutes[F[_]: Monad]: HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
     import dsl._
@@ -62,5 +67,11 @@ object Http4sTutorial {
       case GET -> Root / "directors" / DirectorPath(director) => ???
     }
   }
+
+  def allRoutes[F[_]: Monad]: HttpRoutes[F] =
+    movieRoutes[F] <+> directorRoutes[F]
+
+  def allRoutesComplete[F[_]: Monad]: HttpApp[F] =
+    allRoutes[F].orNotFound
 
 }
